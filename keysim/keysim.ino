@@ -1,7 +1,14 @@
-
 #include <USBComposite.h>
 
-const int USE_MOUSE = 0;
+const int USE_MOUSE = 1;
+
+// mouse initial location
+const int CURSOR_X = 800;
+const int CURSOR_Y = 150;
+int mouse_init_done = 0;
+
+const unsigned long MAX_WORK_TIME_MS = 20 * 60 * 1000;
+
 
 /* See ~/Arduino/libraries/Keyboard/src/Keyboard.h */
 /* #define KEY_PAGE_UP     0xD3 */
@@ -15,27 +22,55 @@ const unsigned int KC = 0xD7;
 
 // intervals between two clicks
 const unsigned long MIN_RAND_WAIT_MS = 1000;
-const unsigned long MAX_RAND_WAIT_MS = 10000;
+const unsigned long MAX_RAND_WAIT_MS = 6000;
 
 unsigned long prevTs = 0;
 unsigned long interval = 1000;
-
+unsigned long ledOffTs = 0;
+unsigned long workTs = 0;
+int ledState = 0; // default led off
 
 USBHID HID;
 HIDKeyboard Keyboard(HID);
 HIDMouse Mouse(HID); 
  
 void setup() {
+    workTs = millis() + MAX_WORK_TIME_MS + random(0, 10 * 60 * 1000);
+    pinMode(PC13, OUTPUT);
+    digitalWrite(PC13, HIGH); // turn off led
+  
     HID.begin(HID_KEYBOARD_MOUSE);
+    
     // while(!USBComposite);
 }
 
 
 void loop() {
     unsigned long now = millis();
+
+    if (now > workTs || now < ledOffTs){ // turn led on
+        if (!ledState){
+            digitalWrite(PC13, LOW);
+            ledState = 1;
+        }
+    }
+    else { 
+        if (ledState){
+            digitalWrite(PC13, HIGH);
+            ledState = 0;
+        }
+    }
+    
     if (now - prevTs > interval) {
+        ledOffTs = now + 500;
         if (USE_MOUSE){
+            if (!mouse_init_done){
+                Mouse.move(CURSOR_X, CURSOR_Y);
+                mouse_init_done = 1;
+            }
+            
             // https://www.arduino.cc/reference/en/language/functions/usb/mouse/mousemove/
+            Mouse.move(random(-5, 6), random(-8, 8));
             Mouse.click();
         }else{
             Keyboard.write(KC);
