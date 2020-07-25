@@ -3,8 +3,8 @@
 const int USE_MOUSE = 1;
 
 // mouse initial location
-const int CURSOR_X = 800;
-const int CURSOR_Y = 150;
+const int CURSOR_X = 126;
+const int CURSOR_Y = 50;
 int mouse_init_done = 0;
 
 const unsigned long MAX_WORK_TIME_MS = 20 * 60 * 1000;
@@ -35,7 +35,7 @@ HIDKeyboard Keyboard(HID);
 HIDMouse Mouse(HID); 
  
 void setup() {
-    workTs = millis() + MAX_WORK_TIME_MS + random(0, 10 * 60 * 1000);
+    workTs = millis() + MAX_WORK_TIME_MS;
     pinMode(PC13, OUTPUT);
     digitalWrite(PC13, HIGH); // turn off led
   
@@ -70,7 +70,8 @@ void loop() {
             }
             
             // https://www.arduino.cc/reference/en/language/functions/usb/mouse/mousemove/
-            Mouse.move(random(-5, 6), random(-8, 8));
+            Mouse.move(random(-2, 4), random(-5, 5));
+            /* Mouse.move(CURSOR_X, CURSOR_Y);  */
             Mouse.click();
         }else{
             Keyboard.write(KC);
